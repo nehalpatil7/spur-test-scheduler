@@ -18,48 +18,7 @@ Third, go to the kitchen, take a mojito, and ENJOY!!!
 
 ## Directory Structure
 ### The files in italic are the ones which we need to create/modify in irder to make the application run.
-spur-test-scheduler/
-└── spur-test-scheduler/
-    ├── .next/
-    ├── app/
-    │   ├── *api/*
-    │   │   ├── *schedules/*
-    │   │   │   └── *route.ts*
-    │   │   └── *test-suites/*
-    │   │       └── *route.ts*
-    │   ├── globals.css
-    │   ├── layout.tsx
-    │   └── *page.tsx*
-    ├── *components/*
-    │   └── ui/
-    │       ├── *CalendarComponent.tsx*
-    │       ├── *EditScheduleModal.tsx*
-    │       ├── *LoginWrapper.tsx*
-    │       └── *ScheduleTestModal.tsx*
-    ├── context/
-    │   └── *AuthContext.tsx*
-    ├── lib/
-    │   └── utils.ts
-    ├── node_modules/
-    ├── public/
-    │   ├── favicon.png
-    │   └── *sidebar.png*
-    ├── utils/
-    │   └── *supabase.ts*
-    ├── *.env.local*
-    ├── *.eslintrc.js*
-    ├── *components.json*
-    ├── eslint.config.mjs
-    ├── next-env.d.ts
-    ├── next.config.ts
-    ├── package-lock.json
-    ├── package.json
-    ├── package-lock.json
-    ├── postcss.config.mjs
-    ├── tailwind.config.ts
-    ├── tsconfig.json
-├── .gitignore
-└── *README.md*
+<img alt="image" src="https://github.com/nehalpatil7/spur-test-scheduler/blob/main/hierarchy.png" />
 
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
@@ -69,7 +28,7 @@ This project uses [`next/font`](https://nextjs.org/docs/app/building-your-applic
 
 
 ## Learn More
-Checkout the live version deployed for a few days on [Vercel Platform]([https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme](https://spur-test-scheduler-jmso.vercel.app/)) (built by the creators of Next.js).
+Checkout the live version deployed for a few days on [Vercel Platform](https://spur-test-scheduler-jmso.vercel.app/) (built by the creators of Next.js).
 
 
 ## Here's the demo of the app if anyone wants to check out.
