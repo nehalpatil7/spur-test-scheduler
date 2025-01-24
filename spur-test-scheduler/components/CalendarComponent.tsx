@@ -1,14 +1,15 @@
 "use client";
 
-// CalendarComponent.tsx
 import React, { useEffect, useState } from 'react';
-import { ChevronLeftIcon, ChevronRightIcon, Bars4Icon, CalendarIcon, ClockIcon } from '@heroicons/react/24/outline';
+import Image from 'next/image';
+import { ChevronLeftIcon, ChevronRightIcon, ClockIcon, BookOpenIcon, Bars4Icon, CalendarIcon } from '@heroicons/react/24/outline';
 import ScheduleTestModal from './ScheduleTestModal';
+import { useAuth } from '@/context/AuthContext';
 
 
 interface TestSuite {
     id: string;
-    name: string;
+    test_suite_name: string;
     start_time: string;
     cadence: string[];
 }
@@ -36,8 +37,19 @@ const getStartOfWeek = (date: Date): Date => {
 
 
 const CalendarComponent: React.FC = () => {
+    const { user, logout } = useAuth();
     const [schedules, setSchedules] = useState<TestSuite[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isCalendarView, setIsCalendarView] = useState(true);
+    const [currentPage, setCurrentPage] = useState(1);
+
+    const recordsPerPage = 10;
+    const totalPages = Math.ceil(schedules.length / recordsPerPage);
+
+    const paginatedSchedules = schedules.slice(
+        (currentPage - 1) * recordsPerPage,
+        currentPage * recordsPerPage
+    );
 
     const [weekState, setWeekState] = useState<WeekState>(() => {
         const today = new Date();
@@ -117,8 +129,8 @@ const CalendarComponent: React.FC = () => {
                     className="absolute inset-1 bg-blue-50 p-2 rounded flex flex-col gap-1 w-[137.71px] border border-[#0435DD80]"
                     style={{ backgroundColor: 'rgba(4, 53, 221, 0.05)' }}
                 >
-                    <div className="w-[121.71px] h-3 text-[#0435DD] font-sans text-xs font-semibold leading-[12px]">
-                        {schedule.name}
+                    <div className="w-[122.71px] h-3 text-[#0435DD] font-sans text-xs font-semibold leading-[12px]">
+                        {schedule.test_suite_name}
                     </div>
                     <div className="w-full h-3 flex items-center gap-1 text-[#0435DD]">
                         <ClockIcon className="w-3 h-3" />
@@ -135,6 +147,14 @@ const CalendarComponent: React.FC = () => {
             ));
     };
 
+    const handleLogout = async () => {
+        try {
+            await logout();
+        } catch (error) {
+            console.error('Error logging out:', error);
+        }
+    };
+
 
     return (
         <div className="flex">
@@ -143,7 +163,31 @@ const CalendarComponent: React.FC = () => {
 
             <div className="flex-1">
                 {/* Top Bar */}
-                <div className="h-[64px] bg-[#FFFFFF] border-b border-[#DED9D6]" />
+                <div className="h-[64px] bg-[#FFFFFF] border-b border-[#DED9D6] flex items-center justify-between pl-3 pr-6">
+                    {/* Side pane toggle */}
+                    <button className="p-2.5 hover:bg-gray-100 rounded-lg border-2 border-gray-300">
+                        <Image
+                            src="/sidebar.png"
+                            alt="Toggle Sidebar"
+                            width={20}
+                            height={20}
+                        />
+                    </button>
+
+                    {/* Documentation & Profile */}
+                    <div className="flex items-center gap-4">
+                        <button className="flex items-center gap-2 px-3 py-2 text-[#1B1919] hover:bg-gray-50 rounded-md">
+                            <BookOpenIcon className="h-5 w-5" />
+                            <span className="text-sm font-medium">Docs</span>
+                        </button>
+
+                        <button
+                            onClick={handleLogout}
+                            className="w-8 h-8 rounded-full bg-gray-900 text-white flex items-center justify-center text-sm font-medium">
+                            {user ? user.email.charAt(0).toUpperCase() : '??'}
+                        </button>
+                    </div>
+                </div>
 
                 {/* Main Content */}
                 <div className="pt-6 pr-9 pb-6 pl-9 bg-white font-sans">
@@ -167,47 +211,130 @@ const CalendarComponent: React.FC = () => {
                                 <ChevronRightIcon className="h-5 w-5" />
                             </button>
                         </div>
-                    </div>
 
-                    {/* Calendar Grid */}
-                    <div className="grid grid-cols-[60px,1fr] h-full">
-
-                        {/* Time column */}
-                        <div className="w-[48px] h-fit pt-[34px]">
-                            {timeSlots.map((time, index) => (
-                                <div key={index} className="h-[60px] text-xs font-normal text-left font-sans leading-[12px] text-[#717070]">
-                                    {time}
-                                </div>
-                            ))}
-                        </div>
-
-                        {/* Days grid */}
-                        <div className="grid grid-cols-7 border border-[#e0e0e0] rounded-lg">
-                            {weekState.weekDays.map((day) => (
-                                <div key={day.date.toISOString()} className="border-r border-[#e0e0e0]">
-                                    <div className="pl-4 pr-4 pt-1 pb-1 bg-[#F3F2F1] flex items-center">
-                                        <span className="text-lg font-normal text-left text-[#1B1919] mr-2">
-                                            {day.date.getDate()}
-                                        </span>
-                                        <span className="text-sm font-normal text-left text-[#717070]">
-                                            {day.name}
-                                        </span>
+                        <div className="flex items-center gap-2 ml-auto">
+                            <div className="flex p-1 bg-[#F3F2F1] rounded-lg">
+                                <button
+                                    className={`p-1 rounded-lg transition-all duration-200 ${!isCalendarView ? 'bg-white border border-[#DED9D6]' : ''}`}
+                                    onClick={() => setIsCalendarView(false)}
+                                >
+                                    <div className="w-8 h-8 flex items-center justify-center">
+                                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                            <path d="M7 5H3M7 10H3M7 15H3M11 5H17M11 10H17M11 15H17" stroke="#1B1919" strokeWidth="1.5" strokeLinecap="round" />
+                                        </svg>
                                     </div>
-
-
-                                    {/* Time slots for each day */}
-                                    {Array.from({ length: 13 }, (_, i) => (
-                                        <div
-                                            key={i}
-                                            className="h-[56px] relative"
-                                        >
-                                            {renderScheduledTests(day.date, i + 1)}
-                                        </div>
-                                    ))}
-                                </div>
-                            ))}
+                                </button>
+                                <button
+                                    className={`p-1 rounded-lg transition-all duration-200 ${isCalendarView ? 'bg-white border border-[#DED9D6]' : ''}`}
+                                    onClick={() => setIsCalendarView(true)}
+                                >
+                                    <div className="w-8 h-8 flex items-center justify-center">
+                                        <CalendarIcon className="h-5 w-5 text-[#1B1919]" />
+                                    </div>
+                                </button>
+                            </div>
                         </div>
                     </div>
+
+                    {/* Conditional rendering of Calendar or List view */}
+                    {isCalendarView ? (
+
+                        <div className="grid grid-cols-[60px,1fr] h-full">
+                            {/* Time column */}
+                            <div className="w-[48px] h-fit pt-[34px]">
+                                {timeSlots.map((time, index) => (
+                                    <div key={index} className="h-[60px] text-xs font-normal text-left font-sans leading-[12px] text-[#717070]">
+                                        {time}
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* Days grid */}
+                            <div className="grid grid-cols-7 border border-[#e0e0e0] rounded-lg">
+                                {weekState.weekDays.map((day) => (
+                                    <div key={day.date.toISOString()} className="border-r border-[#e0e0e0]">
+                                        <div className="pl-4 pr-4 pt-1 pb-1 bg-[#F3F2F1] flex items-center">
+                                            <span className="text-lg font-normal text-left text-[#1B1919] mr-2">
+                                                {day.date.getDate()}
+                                            </span>
+                                            <span className="text-sm font-normal text-left text-[#717070]">
+                                                {day.name}
+                                            </span>
+                                        </div>
+
+                                        {/* Time slots for each day */}
+                                        {Array.from({ length: 13 }, (_, i) => (
+                                            <div
+                                                key={i}
+                                                className="h-[56px] relative"
+                                            >
+                                                {renderScheduledTests(day.date, i + 1)}
+                                            </div>
+                                        ))}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                    ) : (
+                        // Display a list view of scheduled tests
+                        <div className="flex flex-col h-[calc(100vh-240px)]">
+                            <div className="flex-1 overflow-y-auto">
+                                {paginatedSchedules.map((schedule) => (
+                                    <div
+                                        key={schedule.id}
+                                        className="flex items-center justify-between p-4 border-b border-[#DED9D6]"
+                                    >
+                                        <div className="flex flex-col gap-2">
+                                            <span className="text-base font-semibold text-[#1B1919]">
+                                                {schedule.test_suite_name}
+                                            </span>
+                                            <div className="flex items-center gap-2 text-[#717070]">
+                                                <ClockIcon className="w-4 h-4" />
+                                                <span className="text-sm">
+                                                    {new Date(schedule.start_time).toLocaleString([], {
+                                                        weekday: 'short',
+                                                        month: 'short',
+                                                        day: 'numeric',
+                                                        year: 'numeric',
+                                                        hour: 'numeric',
+                                                        minute: '2-digit',
+                                                        timeZone: 'PST',
+                                                        hour12: true
+                                                    })} PST
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+
+                            {/* Pagination */}
+                            {totalPages > 1 && (
+                                <div className="flex justify-center items-center gap-2 p-4 border-t border-[#DED9D6]">
+                                    <button
+                                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                        disabled={currentPage === 1}
+                                        className="p-2 rounded-lg hover:bg-gray-100 disabled:opacity-50"
+                                    >
+                                        <ChevronLeftIcon className="h-5 w-5" />
+                                    </button>
+                                    <span className="text-sm text-[#1B1919]">
+                                        Page {currentPage} of {totalPages}
+                                    </span>
+                                    <button
+                                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                                        disabled={currentPage === totalPages}
+                                        className="p-2 rounded-lg hover:bg-gray-100 disabled:opacity-50"
+                                    >
+                                        <ChevronRightIcon className="h-5 w-5" />
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
                 </div>
             </div>
 

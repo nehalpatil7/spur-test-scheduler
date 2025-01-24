@@ -1,9 +1,6 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-import { createSupabaseClient } from '../../../utils/supabase';
+import { supabase } from '../../../utils/supabase';
 
-
-const supabase = createSupabaseClient();
 
 export async function GET() {
     try {
@@ -15,8 +12,6 @@ export async function GET() {
             throw new Error(error.message);
         }
 
-        console.log(test_schedules);
-
         return NextResponse.json(test_schedules);
     } catch (error) {
         return NextResponse.json({ error: error instanceof Error ? error.message : 'An unexpected error occurred.' }, { status: 500 });
@@ -24,75 +19,13 @@ export async function GET() {
 }
 
 
-// // POST API: Save a new schedule
-// export async function POST(request: any) {
-//     try {
-//         const { test_suite_id, start_time, cadence } = await request.json();
-
-//         // Validate input
-//         if (!test_suite_id || !start_time || !cadence || cadence.length === 0) {
-//             return NextResponse.json(
-//                 { error: 'Missing required fields.' },
-//                 { status: 400 }
-//             );
-//         }
-
-//         // Check for overlapping schedules
-//         const { data: existingSchedules, error: fetchError } = await supabase
-//             .from('test_schedules')
-//             .select('*')
-//             .filter('test_suite_id', 'eq', test_suite_id);
-
-//         if (fetchError) {
-//             throw new Error(fetchError.message);
-//         }
-
-//         const overlapping = existingSchedules.some((schedule) => {
-//             const scheduleStart = new Date(schedule.start_time).getTime();
-//             const newStart = new Date(start_time).getTime();
-//             return (
-//                 scheduleStart === newStart &&
-//                 cadence.some((day: string) => schedule.cadence.includes(day))
-//             );
-//         });
-
-//         if (overlapping) {
-//             return NextResponse.json(
-//                 { error: 'Schedule overlaps with an existing one.' },
-//                 { status: 400 }
-//             );
-//         }
-
-//         // Insert new schedule into the database
-//         const { data, error: insertError } = await supabase.from('test_schedules').insert([
-//             {
-//                 test_suite_id,
-//                 start_time,
-//                 cadence,
-//             },
-//         ]);
-
-//         if (insertError) {
-//             throw new Error(insertError.message);
-//         }
-
-//         return NextResponse.json({ message: 'Schedule saved successfully.', data });
-//     } catch (error) {
-//         return NextResponse.json(
-//             { error: error instanceof Error ? error.message || 'An unexpected error occurred.' },
-//             { status: 500 }
-//         );
-//     }
-// }
-
-
 export async function POST(request: any) {
     try {
-        const { test_suite_id, start_time, cadence } = await request.json();
+        const { test_suite_name, test_suite_id, start_time, cadence, user_id } = await request.json();
 
-        console.log('Payload received:', { test_suite_id, start_time, cadence }); // Debug payload
+        console.log('Payload received:', { test_suite_name, test_suite_id, start_time, cadence, user_id }); // Debug payload
 
-        if (!test_suite_id || !start_time || !cadence) {
+        if (!test_suite_name || !test_suite_id || !start_time || !cadence || !user_id) {
             throw new Error('Missing required fields');
         }
 
@@ -106,7 +39,7 @@ export async function POST(request: any) {
         }
 
         const { data, error: insertError } = await supabase.from('test_schedules').insert([
-            { test_suite_id, start_time, cadence },
+            { test_suite_name, test_suite_id, start_time, cadence, user_id  },
         ]);
 
         if (insertError) {

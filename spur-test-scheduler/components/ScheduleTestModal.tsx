@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { XMarkIcon, CalendarIcon, XCircleIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon, XCircleIcon } from '@heroicons/react/24/outline';
 import { Button } from "@/components/ui/button"
+import { useAuth } from '@/context/AuthContext';
 
 
 interface TestSuite {
@@ -17,8 +18,10 @@ interface ScheduleTestModalProps {
 }
 
 const ScheduleTestModal: React.FC<ScheduleTestModalProps> = ({ isOpen, onClose, onSave }) => {
+    const { user } = useAuth();
     const [testSuites, setTestSuites] = useState<TestSuite[]>([]); // Test suite dropdown data
     const [selectedSuite, setSelectedSuite] = useState<string>('');
+    const [selectedSuiteName, setSelectedSuiteName] = useState<string>('');
     const [startTime, setStartTime] = useState<string>('');
     const [cadence, setCadence] = useState<string[]>([]); // Days of the week
 
@@ -45,9 +48,11 @@ const ScheduleTestModal: React.FC<ScheduleTestModalProps> = ({ isOpen, onClose, 
     const handleSave = async () => {
         try {
             const payload = {
+                test_suite_name: selectedSuiteName,
                 test_suite_id: selectedSuite,
                 start_time: startTime,
                 cadence,
+                user_id: user?.id,
             };
 
             const response = await fetch('/api/schedules', {
@@ -58,13 +63,20 @@ const ScheduleTestModal: React.FC<ScheduleTestModalProps> = ({ isOpen, onClose, 
 
             if (response.ok) {
                 onSave(); // Callback to refresh calendar
-                onClose(); // Close modal
+                onClose();
             } else {
                 console.error('Failed to save schedule');
             }
         } catch (error) {
             console.error('Error saving schedule:', error);
         }
+    };
+
+    const handleCancel = () => {
+        setSelectedSuite('');
+        setStartTime('');
+        setCadence([]);
+        onClose();
     };
 
     if (!isOpen) return null;
@@ -88,7 +100,11 @@ const ScheduleTestModal: React.FC<ScheduleTestModalProps> = ({ isOpen, onClose, 
                         <div className="relative w-full max-w-[600px] h-[44px] text-[#1B1919]">
                             <select
                                 value={selectedSuite}
-                                onChange={(e) => setSelectedSuite(e.target.value)}
+                                onChange={(e) => {
+                                    const selectedOption = e.target.options[e.target.selectedIndex];
+                                    setSelectedSuite(e.target.value);
+                                    setSelectedSuiteName(selectedOption.text);
+                                }}
                                 className="w-full h-11 rounded-md border border-[#DED9D6] py-2.5 px-3 appearance-none bg-white text-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 leading-tight"
                             >
                                 <option value="">Demo Suite</option>
@@ -112,14 +128,12 @@ const ScheduleTestModal: React.FC<ScheduleTestModalProps> = ({ isOpen, onClose, 
                             <label className="w-fill h-fill text-sm font-semibold leading-none text-left font-sans text-[#1B1919]">Start Date and Time</label>
                             <div className="relative w-full max-w-[600px] h-[44px] text-[#1B1919]">
                                 <input
-                                    type="text"
-                                    value="10/10/24 at 7:00 AM PST"
-                                    readOnly
+                                    type="datetime-local"
+                                    value={startTime}
+                                    onChange={(e) => setStartTime(e.target.value)}
                                     className="w-full p-2 border border-[#DED9D6] rounded-lg text-base leading-normal"
                                 />
-                                <button className="absolute right-4 top-1/2 -translate-y-1/2">
-                                    <CalendarIcon className="h-5 w-5 text-gray-400" />
-                                </button>
+                                <button className="absolute right-4 top-1/2 -translate-y-1/2"></button>
                             </div>
                         </div>
 
@@ -153,6 +167,7 @@ const ScheduleTestModal: React.FC<ScheduleTestModalProps> = ({ isOpen, onClose, 
                 {/* Footer */}
                 <div className="w-full h-[72px] py-4 px-5 flex justify-between items-center gap-4 border-t border-gray-200">
                     <Button
+                        onClick={onClose}
                         variant="outline"
                         size="sm"
                         className="w-[292px] h-10 px-3 py-2 gap-2 rounded-lg border border-t-[1px] border-r-0 border-b-0 border-l-0 text-red-500 hover:text-red-600"
@@ -160,6 +175,7 @@ const ScheduleTestModal: React.FC<ScheduleTestModalProps> = ({ isOpen, onClose, 
                         <XCircleIcon className="w-4 h-4 mr-2" />Cancel Schedule
                     </Button>
                     <Button
+                        onClick={handleSave}
                         className="w-[292px] h-10 px-4 py-2 gap-2 rounded-lg border-t border-[#0435DD] bg-[#0435DD] text-white hover:bg-[#0435DD]/90 focus:ring-2 focus:ring-[#0435DD]/50"
                     >
                         Save Changes

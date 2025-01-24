@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState } from 'react';
+import LoginWrapper from '@/components/LoginWrapper';
+import { AuthProvider } from '@/context/AuthContext';
 import CalendarComponent from '@/components/CalendarComponent';
 import ScheduleTestModal from '@/components/ScheduleTestModal';
 
@@ -13,7 +15,11 @@ export default function Home() {
 
   return (
     <main className="">
-      <CalendarComponent />
+      <AuthProvider>
+        <LoginWrapper>
+          <CalendarComponent />
+        </LoginWrapper>
+      </AuthProvider>
     </main>
   );
 }
