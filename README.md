@@ -28,7 +28,7 @@ This project uses [`next/font`](https://nextjs.org/docs/app/building-your-applic
 
 
 ## Learn More
-Checkout the live version deployed for a few days on [Vercel Platform](https://spur-test-scheduler-jmso.vercel.app/) (built by the creators of Next.js).
+Checkout the live version deployed for a few days on [Vercel Platform](https://spur-test-scheduler-k1s6xudk7-nehalpatil7-pro.vercel.app/) (built by the creators of Next.js).
 
 
 ## Here's the demo of the app if anyone wants to check out.
