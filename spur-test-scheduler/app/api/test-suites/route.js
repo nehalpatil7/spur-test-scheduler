@@ -1,18 +1,18 @@
 import { NextResponse } from 'next/server';
 
 export async function GET() {
-    const mockTestSuites = [
-        {
-            id: '1',
-            name: 'Suite 1',
-            created_at: '2024-10-10T07:00:00Z',
-        },
-        {
-            id: '2',
-            name: 'Suite 2',
-            created_at: '2024-10-12T08:00:00Z',
-        },
-    ];
+    try {
+        const { data: suites, error } = await supabase
+            .from('test_suites')
+            .select('*');
 
-    return NextResponse.json(mockTestSuites);
+            console.log(data);
+        if (error) {
+            throw new Error(error.message);
+        }
+
+        return NextResponse.json(suites);
+    } catch (error) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
+    }
 }

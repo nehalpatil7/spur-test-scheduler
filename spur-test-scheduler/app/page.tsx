@@ -12,20 +12,8 @@ export default function Home() {
   };
 
   return (
-    <main className="p-4">
-      <button
-        onClick={() => setModalOpen(true)}
-        className="p-2 bg-blue-500 text-white rounded mb-4"
-      >
-        Schedule Test
-      </button>
+    <main className="">
       <CalendarComponent />
-      {isModalOpen && (
-        <ScheduleTestModal
-          onClose={() => setModalOpen(false)}
-          onSave={handleSave}
-        />
-      )}
     </main>
   );
 }

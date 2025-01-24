@@ -2,19 +2,38 @@
 
 import React, { useState, useEffect } from 'react';
 
-const ScheduleTestModal = ({ onClose, onSave }) => {
-    const [testSuites, setTestSuites] = useState([]); // Test suite dropdown data
-    const [selectedSuite, setSelectedSuite] = useState('');
-    const [startTime, setStartTime] = useState('');
-    const [cadence, setCadence] = useState([]); // Days of the week
+interface TestSuite {
+    id: string;
+    name: string;
+}
+
+interface ScheduleTestModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+    onSave: () => void;
+}
+
+const ScheduleTestModal: React.FC<ScheduleTestModalProps> = ({ isOpen, onClose, onSave }) => {
+    const [testSuites, setTestSuites] = useState<TestSuite[]>([]); // Test suite dropdown data
+    const [selectedSuite, setSelectedSuite] = useState<string>('');
+    const [startTime, setStartTime] = useState<string>('');
+    const [cadence, setCadence] = useState<string[]>([]); // Days of the week
 
     // Fetch available test suites on load
     useEffect(() => {
         async function fetchTestSuites() {
             try {
+                console.log('Fetching test suites...'); // Log fetch start
                 const response = await fetch('/api/test-suites');
+                console.log('Response received:', response); // Log response object
                 const data = await response.json();
-                setTestSuites(data);
+                console.log('Parsed data:', data); // Log parsed data
+
+                if (Array.isArray(data)) {
+                    setTestSuites(data);
+                } else {
+                    console.error('Unexpected data format:', data);
+                }
             } catch (error) {
                 console.error('Failed to fetch test suites:', error);
             }
@@ -22,7 +41,7 @@ const ScheduleTestModal = ({ onClose, onSave }) => {
         fetchTestSuites();
     }, []);
 
-    const handleCadenceChange = (day) => {
+    const handleCadenceChange = (day: string) => {
         setCadence((prev) =>
             prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
         );
