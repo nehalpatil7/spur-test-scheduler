@@ -2,8 +2,9 @@
 
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { ChevronLeftIcon, ChevronRightIcon, ClockIcon, BookOpenIcon, Bars4Icon, CalendarIcon } from '@heroicons/react/24/outline';
+import { ChevronLeftIcon, ChevronRightIcon, ClockIcon, BookOpenIcon, CalendarIcon } from '@heroicons/react/24/outline';
 import ScheduleTestModal from './ScheduleTestModal';
+import EditScheduleModal from "./EditScheduleModal";
 import { useAuth } from '@/context/AuthContext';
 
 
@@ -12,12 +13,6 @@ interface TestSuite {
     test_suite_name: string;
     start_time: string;
     cadence: string[];
-}
-
-interface ScheduleTestModalProps {
-    isOpen: boolean;
-    onClose: () => void;
-    onSave: () => void;
 }
 
 interface WeekState {
@@ -42,6 +37,8 @@ const CalendarComponent: React.FC = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isCalendarView, setIsCalendarView] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
+    const [editingSchedule, setEditingSchedule] = useState<TestSuite | null>(null);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
     const recordsPerPage = 10;
     const totalPages = Math.ceil(schedules.length / recordsPerPage);
@@ -74,6 +71,22 @@ const CalendarComponent: React.FC = () => {
         }
         fetchSchedules();
     }, []);
+
+    const handleEditClick = (schedule: TestSuite) => {
+        setEditingSchedule(schedule);
+        setIsEditModalOpen(true);
+    };
+
+    const handleSave = async () => {
+        // Refresh schedules after updating
+        try {
+            const response = await fetch("/api/schedules");
+            const data = await response.json();
+            setSchedules(data);
+        } catch (error) {
+            console.error("Error refreshing schedules:", error);
+        }
+    };
 
     function generateWeekDays(startDate: Date) {
         const days = [];
@@ -113,19 +126,24 @@ const CalendarComponent: React.FC = () => {
     const timeSlots = ['PST', '1 AM', '2 AM', '3 AM', '4 AM', '5 AM', '6 AM', '7 AM', '8 AM', '9 AM', '10 AM', '11 AM', '12 PM', '1 PM'];
 
     const renderScheduledTests = (day: Date, hour: number) => {
+        const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
         return schedules
             .filter((schedule) => {
                 const scheduleDate = new Date(schedule.start_time);
+
                 return (
-                    scheduleDate.getDate() === day.getDate() &&
-                    scheduleDate.getMonth() === day.getMonth() &&
-                    scheduleDate.getFullYear() === day.getFullYear() &&
-                    scheduleDate.getHours() === hour
+                    schedule.cadence.includes(daysOfWeek[day.getDay()]) &&
+                    // Check if hour matches
+                    scheduleDate.getHours() === hour &&
+                    // Check if current date is after start date
+                    day.getTime() >= scheduleDate.getTime()
                 );
             })
             .map((schedule) => (
                 <div
                     key={schedule.id}
+                    onClick={() => handleEditClick(schedule)}
                     className="absolute inset-1 bg-blue-50 p-2 rounded flex flex-col gap-1 w-[137.71px] border border-[#0435DD80]"
                     style={{ backgroundColor: 'rgba(4, 53, 221, 0.05)' }}
                 >
@@ -262,6 +280,14 @@ const CalendarComponent: React.FC = () => {
                                             </span>
                                         </div>
 
+                                        {/* Edit Schedule Modal */}
+                                        <EditScheduleModal
+                                            isOpen={isEditModalOpen}
+                                            schedule={editingSchedule}
+                                            onClose={() => setIsEditModalOpen(false)}
+                                            onSave={handleSave}
+                                        />
+
                                         {/* Time slots for each day */}
                                         {Array.from({ length: 13 }, (_, i) => (
                                             <div
@@ -275,7 +301,6 @@ const CalendarComponent: React.FC = () => {
                                 ))}
                             </div>
                         </div>
-
                     ) : (
                         // Display a list view of scheduled tests
                         <div className="flex flex-col h-[calc(100vh-240px)]">

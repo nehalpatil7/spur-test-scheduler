@@ -72,13 +72,6 @@ const ScheduleTestModal: React.FC<ScheduleTestModalProps> = ({ isOpen, onClose, 
         }
     };
 
-    const handleCancel = () => {
-        setSelectedSuite('');
-        setStartTime('');
-        setCadence([]);
-        onClose();
-    };
-
     if (!isOpen) return null;
 
     return (
