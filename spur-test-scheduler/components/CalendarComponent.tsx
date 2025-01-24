@@ -1,22 +1,22 @@
 "use client";
 
 // CalendarComponent.tsx
-import React, { useState } from 'react';
-import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
-import { Bars4Icon, CalendarIcon } from '@heroicons/react/24/outline';
+import React, { useEffect, useState } from 'react';
+import { ChevronLeftIcon, ChevronRightIcon, Bars4Icon, CalendarIcon, ClockIcon } from '@heroicons/react/24/outline';
 import ScheduleTestModal from './ScheduleTestModal';
 
 
 interface TestSuite {
+    id: string;
     name: string;
-    startTime: string;
-    weekday: string;
+    start_time: string;
+    cadence: string[];
 }
 
 interface ScheduleTestModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onSave: (schedule: any) => void;
+    onSave: () => void;
 }
 
 interface WeekState {
@@ -47,6 +47,21 @@ const CalendarComponent: React.FC = () => {
             weekDays: generateWeekDays(startDate),
         };
     });
+
+    useEffect(() => {
+        async function fetchSchedules() {
+            try {
+                console.log('Fetching schedules...');
+                const response = await fetch('/api/schedules');
+                const data = await response.json();
+                console.log('Fetched schedules:', data);
+                setSchedules(data);
+            } catch (error) {
+                console.error('Error fetching schedules:', error);
+            }
+        }
+        fetchSchedules();
+    }, []);
 
     function generateWeekDays(startDate: Date) {
         const days = [];
@@ -84,6 +99,41 @@ const CalendarComponent: React.FC = () => {
     };
 
     const timeSlots = ['PST', '1 AM', '2 AM', '3 AM', '4 AM', '5 AM', '6 AM', '7 AM', '8 AM', '9 AM', '10 AM', '11 AM', '12 PM', '1 PM'];
+
+    const renderScheduledTests = (day: Date, hour: number) => {
+        return schedules
+            .filter((schedule) => {
+                const scheduleDate = new Date(schedule.start_time);
+                return (
+                    scheduleDate.getDate() === day.getDate() &&
+                    scheduleDate.getMonth() === day.getMonth() &&
+                    scheduleDate.getFullYear() === day.getFullYear() &&
+                    scheduleDate.getHours() === hour
+                );
+            })
+            .map((schedule) => (
+                <div
+                    key={schedule.id}
+                    className="absolute inset-1 bg-blue-50 p-2 rounded flex flex-col gap-1 w-[137.71px] border border-[#0435DD80]"
+                    style={{ backgroundColor: 'rgba(4, 53, 221, 0.05)' }}
+                >
+                    <div className="w-[121.71px] h-3 text-[#0435DD] font-sans text-xs font-semibold leading-[12px]">
+                        {schedule.name}
+                    </div>
+                    <div className="w-full h-3 flex items-center gap-1 text-[#0435DD]">
+                        <ClockIcon className="w-3 h-3" />
+                        <span className="font-sans text-xs font-semibold leading-[12px]">
+                            {new Date(schedule.start_time).toLocaleTimeString([], {
+                                hour: 'numeric',
+                                minute: '2-digit',
+                                timeZone: 'PST',
+                                hour12: true
+                            })} PST
+                        </span>
+                    </div>
+                </div>
+            ));
+    };
 
 
     return (
@@ -149,9 +199,9 @@ const CalendarComponent: React.FC = () => {
                                     {Array.from({ length: 13 }, (_, i) => (
                                         <div
                                             key={i}
-                                            className="h-[60px] relative"
+                                            className="h-[56px] relative"
                                         >
-                                            {/* Render scheduled tests here if they match this day and time slot */}
+                                            {renderScheduledTests(day.date, i + 1)}
                                         </div>
                                     ))}
                                 </div>
@@ -166,7 +216,20 @@ const CalendarComponent: React.FC = () => {
                 <ScheduleTestModal
                     isOpen={isModalOpen}
                     onClose={() => setIsModalOpen(false)}
-                // onSave={}
+                    onSave={() => {
+                        setIsModalOpen(false);
+                        // Refresh schedules after saving
+                        async function refreshSchedules() {
+                            try {
+                                const response = await fetch('/api/schedules');
+                                const data = await response.json();
+                                setSchedules(data);
+                            } catch (error) {
+                                console.error('Error refreshing schedules:', error);
+                            }
+                        }
+                        refreshSchedules();
+                    }}
                 />
             )}
         </div>

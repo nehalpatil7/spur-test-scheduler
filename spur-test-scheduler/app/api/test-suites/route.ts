@@ -1,4 +1,8 @@
 import { NextResponse } from 'next/server';
+import { createSupabaseClient } from '../../../utils/supabase';
+
+
+const supabase = createSupabaseClient();
 
 export async function GET() {
     try {
@@ -6,13 +10,12 @@ export async function GET() {
             .from('test_suites')
             .select('*');
 
-            console.log(data);
         if (error) {
             throw new Error(error.message);
         }
 
         return NextResponse.json(suites);
     } catch (error) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ error: error instanceof Error ? error.message : 'An unexpected error occurred.' }, { status: 500 });
     }
 }
