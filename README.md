@@ -1,3 +1,9 @@
+# A test scheduler built for SPUR's assessment
+
+<p align="center">
+  <img src="https://skillicons.dev/icons?i=git,js,ts,html,css,tailwind,supabase" /><br>
+</p>
+
 This is a [Next.js](https://nextjs.org) project with Supabase/Postgres and a hell lot of Tailwind CSS for just one screen, that it can even blow away an Aircraft carrier.
 
 <img width="1532" alt="image" src="https://github.com/user-attachments/assets/04c66872-a45a-42e0-9a47-3466ad206cb9" />
